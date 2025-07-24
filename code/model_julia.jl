@@ -5,8 +5,8 @@ using DataFrames
 using HiGHS
 
 # === Load Datasets ===
-truck_df = CSV.read("C:/Users/marius/OneDrive/UWI - Postgraduate - Data Science/Thesis/thesis_code/data/processed/truck_config_julia.csv", DataFrame)
-demand_df = CSV.read("C:/Users/marius/OneDrive/UWI - Postgraduate - Data Science/Thesis/thesis_code/data/processed/station_demand_julia.csv", DataFrame)
+truck_df = CSV.read("https://github.com/Marius-14/thesis_code/blob/0f63574f5459f288a921b28b271e0c068eb2a622/data/processed/truck_config_julia.csv?raw=true", DataFrame)
+demand_df = CSV.read("https://github.com/Marius-14/thesis_code/blob/0f63574f5459f288a921b28b271e0c068eb2a622/data/processed/station_demand_julia.csv?raw=true", DataFrame)
 
 # === Sets ===
 T = truck_df.Trailer
