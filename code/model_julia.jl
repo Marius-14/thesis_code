@@ -3,10 +3,13 @@ using JuMP
 using CSV
 using DataFrames
 using HiGHS
+using FilePathsBase
+
+const ROOT = parentpath(@__DIR__)
 
 # === Load Datasets ===
-truck_df = CSV.read("https://github.com/Marius-14/thesis_code/blob/0f63574f5459f288a921b28b271e0c068eb2a622/data/processed/truck_config_julia.csv?raw=true", DataFrame)
-demand_df = CSV.read("https://github.com/Marius-14/thesis_code/blob/0f63574f5459f288a921b28b271e0c068eb2a622/data/processed/station_demand_julia.csv?raw=true", DataFrame)
+truck_df = CSV.read(rel("data/processed/truck_config_julia.csv"), DataFrame)
+demand_df = CSV.read(rel("data/processed/station_demand_julia.csv"), DataFrame)
 
 # === Sets ===
 T = truck_df.Trailer
@@ -95,7 +98,7 @@ if status == MOI.OPTIMAL || status == MOI.FEASIBLE_POINT
         end
     end
 
-    CSV.write("C:/Users/marius/OneDrive/UWI - Postgraduate - Data Science/Thesis/thesis_code/data/processed/model_output.csv", detailed_output)
+    CSV.write(rel("data/processed/model_output.csv"), detailed_output)
 
     for i in I
         delivered = sum(value(x[i, t]) for t in T)
