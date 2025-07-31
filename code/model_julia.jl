@@ -5,11 +5,11 @@ using DataFrames
 using HiGHS
 using FilePathsBase
 
-const ROOT = parentpath(@__DIR__)
+const ROOT = dirname(dirname(@__FILE__))
 
 # === Load Datasets ===
-truck_df = CSV.read(rel("data/processed/truck_config_julia.csv"), DataFrame)
-demand_df = CSV.read(rel("data/processed/station_demand_julia.csv"), DataFrame)
+truck_df = CSV.read(joinpath(ROOT,"data/processed/truck_config_julia.csv"), DataFrame)
+demand_df = CSV.read(joinpath(ROOT,"data/processed/station_demand_julia.csv"), DataFrame)
 
 # === Sets ===
 T = truck_df.Trailer
@@ -98,7 +98,7 @@ if status == MOI.OPTIMAL || status == MOI.FEASIBLE_POINT
         end
     end
 
-    CSV.write(rel("data/processed/model_output.csv"), detailed_output)
+    #CSV.write(rel("data/processed/model_output.csv"), detailed_output)
 
     for i in I
         delivered = sum(value(x[i, t]) for t in T)
