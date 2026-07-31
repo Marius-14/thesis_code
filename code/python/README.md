@@ -45,7 +45,7 @@ or table they appear in, so a discrepancy is visible immediately.
 | `experiments.py sensitivity` | distance robustness, Table VI |
 | `experiments.py weights` | penalty-weight calibration, Section III-D |
 | `experiments.py utilization` | fleet and station utilization, Table V |
-| `run_synthetic.py` | the synthetic instance released with the paper |
+| `run_synthetic.py` | the synthetic instance in `data/synthetic/` |
 
 ## Files
 
@@ -64,7 +64,8 @@ number of operating days each trailer's assignment can be compressed into.
 
 `experiments.py` runs the six blocks above.
 
-`run_synthetic.py` and `synthetic/` are the small released instance.
+`run_synthetic.py` solves the small released instance, whose two input
+tables live in `data/synthetic/` alongside the real ones.
 
 ## Notes on reproducing exactly
 

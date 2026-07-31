@@ -40,5 +40,7 @@ pip install -r requirements.txt
 python run_synthetic.py
 ```
 
+The script reads both tables from this directory.
+
 Expected output: 7,329.20 km over 95 trips with zero overfill, and all five
 trailers day-feasible.

@@ -21,7 +21,7 @@ import day_feasibility
 import milp
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-INST = os.path.join(HERE, "synthetic")
+INST = os.path.join(HERE, "..", "..", "data", "synthetic")
 
 if __name__ == "__main__":
     p = milp.load(
