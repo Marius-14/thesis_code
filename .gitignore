@@ -1,0 +1,10 @@
+# never commit the identified source data
+data/raw/fuel_data_raw.csv
+
+# coordinate caches (keyed on real lat/long)
+*.pkl
+
+# notebook cruft
+.ipynb_checkpoints/
+__pycache__/
+*.pyc

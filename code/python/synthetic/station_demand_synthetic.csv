@@ -1,0 +1,13 @@
+Destination_ID,Product,Monthly_Demand_Liters,Product_Storage_Capacity_Liters,Distance_km,Estimated_Refills
+Station_1,Product_1,180000,27200.0,12.4,7
+Station_1,Product_2,95000,17600.0,12.4,6
+Station_2,Product_1,260000,38400.0,25.9,7
+Station_2,Product_3,140000,24000.0,25.9,6
+Station_3,Product_1,410000,49600.0,38.2,9
+Station_3,Product_2,220000,32000.0,38.2,7
+Station_4,Product_2,130000,20800.0,47.6,7
+Station_4,Product_3,86000,14400.0,47.6,6
+Station_5,Product_1,300000,16000.0,61.9,19
+Station_5,Product_3,74000,8000.0,61.9,10
+Station_6,Product_1,58000,12800.0,6.2,5
+Station_6,Product_2,31000,8800.0,6.2,4

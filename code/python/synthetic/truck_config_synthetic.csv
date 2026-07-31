@@ -1,0 +1,6 @@
+Trailer,Truck_Tank_Capacity_Liters,Truck_Type,Max_Trips_Per_Day,Distance_Limit_Per_Day,Active_Days,Availability_Percent
+Trailer_A,42000,Large,6,350,616,70.0
+Trailer_B,34000,Large,6,350,484,55.0
+Trailer_C,24000,Medium,5,250,528,60.0
+Trailer_D,21000,Medium,5,250,352,40.0
+Trailer_E,12000,Small,4,200,396,45.0
