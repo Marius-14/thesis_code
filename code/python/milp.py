@@ -1,27 +1,33 @@
 """Trailer-allocation MILP for multi-product fuel distribution.
 
 A second implementation, in Python, of the model in ``code/model_julia.jl``.
-Both build the same formulation (2,690 constraints, 4,899 variables, 2,380 of
+Both build the same formulation (2,809 constraints, 4,829 variables, 2,380 of
 them integer) and are solved with HiGHS; this one goes through the CPLEX LP
 file format and the ``highspy`` bindings rather than JuMP.
 
 Formulation (Section III-C of the paper)::
 
-    min  sum_t D_t + l1 * Dmax + l2 * sum_i z_i
+    min  sum_t D_t + lam * Dmax
 
     s.t. sum_t x_it            >= Q_i                       for all i   (2)
          x_it                  <= y_it * min(C_t, V_i)      for all i,t (3)
-         sum_i y_it            <= D * M_t * A_t             for all t   (4)
-         sum_i y_it * d_i      <= D * L_t * A_t             for all t   (5)
+         sum_i y_it            <= M_t * N_t                 for all t   (4)
+         sum_i y_it * d_i      <= rho * L_t * N_t           for all t   (5)
          D_t                    = sum_i y_it * d_i          for all t   (6)
          D_t                   <= Dmax                      for all t   (7)
-         sum_t x_it            <= R_i + z_i                 for all i   (8)
+         sum_t x_it            <= R_i                       for all i   (8)
+         sum_{i : d_i > L_t/(k+1)} y_it <= k * N_t          for all t,k (9)
 
-    x_it, z_i, D_t, Dmax >= 0 ;  y_it integer >= 0
+    x_it, D_t, Dmax >= 0 ;  y_it integer >= 0
 
 where x_it is litres delivered to station-product pair i by trailer t, y_it is
-the number of round trips, z_i is overfill, D_t is trailer distance and Dmax is
-the largest trailer distance. u_t = sum_i y_it is carried as a reporting
+the number of round trips, D_t is trailer distance and Dmax is the largest
+trailer distance. N_t = floor(D * A_t) is the number of whole operating days
+available to trailer t, rho is the daily-distance buffer, and (9) are the
+daily-packing inequalities: a round trip longer than L_t/(k+1) cannot be made
+more than k times in a day. Constraints (4), (5) and (9) are what make the
+monthly plan decompose into a legal daily schedule; ``day_feasibility.check``
+certifies that constructively. u_t = sum_i y_it is carried as a reporting
 variable so the instance dimensions match the reference implementation.
 
 Usage::
@@ -44,8 +50,9 @@ REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
 DATA = os.path.join(REPO, "data", "processed")
 
 DAYS = 30           # planning horizon, D
-LAMBDA_1 = 0.1      # imbalance weight, km per km
-LAMBDA_2 = 20.0     # overfill weight, km per litre
+LAMBDA = 0.5        # imbalance weight, km per km
+BUFFER = 0.95       # daily-distance buffer, rho
+KMAX = 4            # largest k in the daily-packing inequalities
 AVAIL_RANGE = (0.20, 0.80)   # trailers retained by availability factor
 
 
@@ -88,7 +95,7 @@ def load(trailer_csv=None, demand_csv=None, dist_scale=None,
         d = {s: v * dist_scale.get(s, 1.0) for s, v in d.items()}
 
     # R_i = ceil(Q_i / V_i) * V_i, i.e. a whole number of tank-fills, which is
-    # always at least Q_i. This is why overfill is zero at optimality.
+    # always at least Q_i, so (8) never binds and no overfill slack is needed.
     R = {i: math.ceil(Q[i] / V[i]) * V[i] for i in I}
 
     return dict(T=T, I=I, A=A, C=C, L=L, M=M, TYPE=TYPE,
@@ -99,13 +106,18 @@ def load(trailer_csv=None, demand_csv=None, dist_scale=None,
 # model
 # --------------------------------------------------------------------------
 
-def build_lp(p, path, integer_days=False, packing_cuts=False, kmax=4,
-             buffer=1.0, lambda_1=LAMBDA_1, lambda_2=LAMBDA_2):
+def build_lp(p, path, integer_days=True, packing_cuts=True, kmax=KMAX,
+             buffer=BUFFER, lam=LAMBDA):
     """Write the MILP to ``path`` in CPLEX LP format.
 
-    integer_days   replace D*A_t by floor(D*A_t) in (4) and (5)
-    packing_cuts   add the daily-packing inequalities, equation (14)
-    buffer         scale the right-hand side of (5), e.g. 0.95 for a 5% margin
+    The defaults are the model as reported in the paper. The two flags exist
+    only so that ``experiments.py`` can re-solve the weaker variant and show
+    what the discrete-day treatment is doing:
+
+    integer_days   use N_t = floor(D*A_t) in (4) and (5); False uses D*A_t
+    packing_cuts   include the daily-packing inequalities (9)
+    buffer         rho, the multiplier on the right-hand side of (5)
+    lam            imbalance weight on Dmax in the objective
     """
     T, I, days = p["T"], p["I"], p["days"]
     ti = {t: k for k, t in enumerate(T)}
@@ -114,12 +126,10 @@ def build_lp(p, path, integer_days=False, packing_cuts=False, kmax=4,
     y = lambda i, t: f"y_{ii[i]}_{ti[t]}"     # round trips
     D = lambda t: f"dist_{ti[t]}"             # distance per trailer
     u = lambda t: f"use_{ti[t]}"              # trips per trailer (reporting)
-    z = lambda i: f"of_{ii[i]}"               # overfill
 
     out = ["Minimize"]
     obj = [f"+ 1 {D(t)}" for t in T]
-    obj.append(f"+ {lambda_1} maxdist")
-    obj += [f"+ {lambda_2} {z(i)}" for i in I]
+    obj.append(f"+ {lam} maxdist")
     out.append(" obj: " + " ".join(obj))
     out.append("Subject To")
     n = 0
@@ -152,7 +162,7 @@ def build_lp(p, path, integer_days=False, packing_cuts=False, kmax=4,
     for i in I:                                                    # (8)
         n += 1
         out.append(f" c{n}: " + " ".join(f"+ {x(i,t)}" for t in T)
-                   + f" - {z(i)} <= {p['R'][i]:.6f}")
+                   + f" <= {p['R'][i]:.6f}")
 
     for t in T:                                                    # (4)
         n += 1
@@ -167,9 +177,9 @@ def build_lp(p, path, integer_days=False, packing_cuts=False, kmax=4,
             f"+ {p['d'][i[0]]:.6f} {y(i,t)}" for i in I)
             + f" <= {p['L'][t] * dt * buffer:.6f}")
 
-    if packing_cuts:                                               # (14)
+    if packing_cuts:                                               # (9)
         # A round trip longer than L_t/(k+1) cannot be made more than k times
-        # in one day, so at most k*floor(D*A_t) such trips fit in the horizon.
+        # in one day, so at most k*N_t such trips fit in the horizon.
         for t in T:
             dt = math.floor(days * p["A"][t])
             for k in range(1, min(kmax, int(p["M"][t])) + 1):
@@ -190,7 +200,7 @@ def build_lp(p, path, integer_days=False, packing_cuts=False, kmax=4,
     with open(path, "w") as fh:
         fh.write("\n".join(out) + "\n")
 
-    n_vars = len(T) * len(I) * 2 + 2 * len(T) + 1 + len(I)
+    n_vars = len(T) * len(I) * 2 + 2 * len(T) + 1
     return n, n_vars
 
 
@@ -238,7 +248,7 @@ def summarise(values, p):
     return dict(
         distance=sum(v for k, v in values.items() if k.startswith("dist_")),
         max_trailer=values.get("maxdist", 0.0),
-        overfill=sum(v for k, v in values.items() if k.startswith("of_")),
+        max_trips=max(trips.values()),
         trips=sum(trips.values()),
         litres=sum(v for k, v in values.items() if k.startswith("x_")),
         trailers_used=sum(1 for t in T if trips[t] > 0),

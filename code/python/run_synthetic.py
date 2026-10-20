@@ -7,8 +7,8 @@ verified without the anonymised production data.
 
     python run_synthetic.py
 
-Expected output: 7,329.20 km over 95 trips, zero overfill, and all five
-trailers day-feasible.
+Expected output: 7,357.80 km over 95 trips, and all five trailers day-
+feasible, which the daily-packing inequalities in the model guarantee.
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     print(f"  distance    {s['distance']:>10,.2f} km")
     print(f"  trips       {s['trips']:>10,.0f}")
     print(f"  litres      {s['litres']:>10,.2f}")
-    print(f"  overfill    {s['overfill']:>10,.2f} L")
+    print(f"  busiest     {s['max_trailer']:>10,.2f} km")
     print(f"  objective   {r['objective']:>10,.2f}   solved in {elapsed:.2f}s")
 
     rows = day_feasibility.check(r["values"], p)

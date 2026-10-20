@@ -10,9 +10,20 @@ Given a month of historical deliveries, the model decides how many round
 trips each trailer makes to each station-product pair and how much it carries,
 subject to tanker capacity, station storage, per-trailer daily trip and
 distance limits, and an availability factor estimated from the historical
-record. On the dataset here it cuts total distance from 74,275 km to
-41,398 km, a 44.3 percent reduction, and is provably within 6.08 percent of
-the linear-programming lower bound.
+record. The formulation works in whole operating days and carries
+daily-packing inequalities, so a monthly plan decomposes into a legal daily
+schedule by construction. On the dataset here it cuts monthly distance from
+50,832 km to 41,282 km, an 18.8 percent reduction, and is provably within
+6.04 percent of the linear-programming lower bound. That figure is
+conservative, because each planned trip carries one product while the
+historical fleet combined several; a variant that lets trips carry several
+products reaches 42.2 percent, so the achievable saving lies between the two.
+
+The historical figure counts each trailer visit to a station as one trip.
+An earlier comparison, kept in `code/comparison_model_vs_actual.ipynb`,
+counted every product line of the delivery records as a separate trip and
+arrived at 74,275 km; `code/python/history.py` documents why the paper no
+longer uses it.
 
 This repository accompanies a conference paper and an MSc thesis at The
 University of the West Indies, St. Augustine.
@@ -35,13 +46,13 @@ University of the West Indies, St. Augustine.
 Everything reported in the paper can be regenerated from `code/python`, which
 reimplements the same formulation and adds the experiments the Julia model
 does not perform on its own: the LP relaxation bound, the day-level
-feasibility certificate, the distance sensitivity study and the penalty-weight
-calibration.
+feasibility certificate, the distance and demand robustness studies, the
+scalability sweep and the imbalance-weight calibration.
 
 ```bash
 cd code/python
 pip install -r requirements.txt
-python experiments.py          # all six blocks, a few minutes
+python experiments.py          # all eleven blocks, about fifteen minutes
 python run_synthetic.py        # the small instance, under a second
 ```
 

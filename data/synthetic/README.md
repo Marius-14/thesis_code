@@ -9,8 +9,8 @@ the formulation can be verified without the anonymised production data.
 | trailers (after the availability filter) | 34 | 5 |
 | station-product pairs | 70 | 12 |
 | stations / products | 25 / 3 | 6 / 3 |
-| constraints / variables | 2,690 / 4,899 | 109 / 143 |
-| solve time at a 10% gap | under 3 s | under 0.1 s |
+| constraints / variables | 2,809 / 4,829 | 125 / 131 |
+| solve time at a 10% gap | under 5 s | under 0.1 s |
 
 It keeps the features that make the real instance interesting: three trailer
 size classes with different daily trip and distance allowances, availability
@@ -42,5 +42,5 @@ python run_synthetic.py
 
 The script reads both tables from this directory.
 
-Expected output: 7,329.20 km over 95 trips with zero overfill, and all five
-trailers day-feasible.
+Expected output: 7,357.80 km over 95 trips, and all five trailers
+day-feasible, which the daily-packing inequalities in the model guarantee.

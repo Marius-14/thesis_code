@@ -1,13 +1,14 @@
 """Day-level feasibility check (Section V-D of the paper).
 
-The MILP plans at monthly granularity: constraints (4) and (5) bound a
-trailer's trips and mileage using D*A_t, which is generally a fractional
-number of operating days. A plan satisfying them need not decompose into
-whole days.
+The MILP plans at monthly granularity: it decides trip counts, not calendar
+dates. Constraints (4), (5) and (9) of the model are written in whole
+operating days N_t = floor(D * A_t), with a daily-distance buffer and the
+daily-packing inequalities, so that a plan satisfying them decomposes into
+legal days. This module does not assume that; it verifies it.
 
-This module tests decomposition directly. For a given trailer, the trips
-assigned to the same station are interchangeable, so the question reduces to
-an integer feasibility problem over the distinct round-trip distances: can
+For a given trailer, the trips assigned to the same station are
+interchangeable, so the question reduces to an integer feasibility problem
+over the distinct round-trip distances: can
 n[k][day] trips of distance dist[k] be placed across the available days so
 that no day exceeds M_t trips or L_t kilometres? That is solved exactly with
 HiGHS, so a positive answer is a constructive proof, not an estimate.
