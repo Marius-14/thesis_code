@@ -82,12 +82,12 @@ intentional.
 
 ## Citing
 
-Please cite the archived release rather than this repository directly, since
-the DOI resolves to a fixed snapshot of the code that produced the published
-results:
+Please cite the archived Zenodo record rather than this repository directly.
+The DOI below always resolves to the latest release; each release, including
+the one behind the published results, also has its own version DOI on Zenodo:
 
-> D. Padmore, "Fuel delivery optimization in wholesale petroleum logistics,"
-> software repository, 2026, doi: 10.5281/zenodo.21728160.
+> D. M. Padmore, "Fuel delivery optimization in wholesale petroleum logistics,"
+> Zenodo, 2026, doi: 10.5281/zenodo.21728160.
 
 ## Licence
 
